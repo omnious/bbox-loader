@@ -1,0 +1,10 @@
+/*
+!/build.sh
+!/.clang-format
+!/CMakeLists.txt
+!/.editorconfig
+!/.gitignore
+!/LICENSE
+!/README.md
+!/src/
+!/*.py
