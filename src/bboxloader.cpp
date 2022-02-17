@@ -25,29 +25,27 @@ PYBIND11_MODULE(bboxloader, m)
         .def_readwrite("ymax", &bbox_details::ymax, "ymax bbox coordinate")
         .def_readwrite("conf", &bbox_details::conf, "detection confidence")
         .def_readwrite("label", &bbox_details::label, "class label")
-        .def_readwrite("bbox_id", &bbox_details::bbox_id, "bounding box id")
-        .def(
-            "__eq__",
-            [](const bbox_details& a, const bbox_details& b) { return a.bbox_id == b.bbox_id; })
+        .def_readwrite("id", &bbox_details::id, "bounding box id")
+        .def("__eq__", [](const bbox_details& a, const bbox_details& b) { return a.id == b.id; })
         .def(
             "__repr__",
             [](const bbox_details& item)
             {
                 std::ostringstream sout;
                 sout << "BBoxDetails(\n";
-                sout << " path:    " << item.path << '\n';
-                sout << " xmin:    " << item.xmin << '\n';
-                sout << " ymin:    " << item.ymin << '\n';
-                sout << " xmax:    " << item.xmax << '\n';
-                sout << " ymax:    " << item.ymax << '\n';
-                sout << " conf:    " << item.conf << '\n';
-                sout << " label:   " << item.label << '\n';
-                sout << " bbox_id: " << item.bbox_id << '\n';
+                sout << " path:  " << item.path << '\n';
+                sout << " xmin:  " << item.xmin << '\n';
+                sout << " ymin:  " << item.ymin << '\n';
+                sout << " xmax:  " << item.xmax << '\n';
+                sout << " ymax:  " << item.ymax << '\n';
+                sout << " conf:  " << item.conf << '\n';
+                sout << " label: " << item.label << '\n';
+                sout << " id:    " << item.id << '\n';
                 sout << ")";
                 return sout.str();
             });
 
-    py::class_<BBoxList>(m, "InfosList")
+    py::class_<BBoxList>(m, "BBoxList")
         .def(py::init<>(), "Construct an InfosList object")
         .def("__len__", [](const BBoxList& l) { return l.size(); })
         .def("__iter__", [](BBoxList& l) { return py::make_iterator(l.begin(), l.end()); })
@@ -57,14 +55,14 @@ PYBIND11_MODULE(bboxloader, m)
         .def("save", [](const BBoxList& l, const std::string& path) { serialize(path) << l; })
         .def("load", [](BBoxList& l, const std::string& path) { deserialize(path) >> l; })
         .def(
-            "find_bbox_id",
+            "find_bbox_by_id",
             [](BBoxList& l, const std::string& id)
             {
                 const auto p = std::find_if(
                                    std::execution::par_unseq,
                                    l.begin(),
                                    l.end(),
-                                   [&id](const auto i) { return i.bbox_id == id; }) -
+                                   [&id](const auto i) { return i.id == id; }) -
                                l.begin();
                 if (p == l.size())
                     return -1l;

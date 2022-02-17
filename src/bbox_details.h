@@ -75,7 +75,7 @@ struct bbox_details
         parse_token<int>(sin);  // DetectionID
         label = mapping.at(parse_token<std::string>(sin));
         conf = parse_token<float>(sin);
-        bbox_id = compute_bbox_id();
+        id = compute_id();
     }
     std::string path;
     int width;
@@ -86,9 +86,9 @@ struct bbox_details
     int ymax;
     float conf;
     std::string label;
-    std::string bbox_id;
+    std::string id;
 
-    std::string compute_bbox_id() const
+    std::string compute_id() const
     {
         std::ostringstream sout;
         sout << path << width << height << xmin << ymin << xmax << ymax << label;
@@ -107,7 +107,7 @@ inline auto serialize(const bbox_details& item, std::ostream& out) -> void
     dlib::serialize(item.ymax, out);
     dlib::serialize(item.conf, out);
     dlib::serialize(item.label, out);
-    dlib::serialize(item.bbox_id, out);
+    dlib::serialize(item.id, out);
 }
 
 inline auto deserialize(bbox_details& item, std::istream& in) -> void
@@ -121,7 +121,7 @@ inline auto deserialize(bbox_details& item, std::istream& in) -> void
     dlib::deserialize(item.ymax, in);
     dlib::deserialize(item.conf, in);
     dlib::deserialize(item.label, in);
-    dlib::deserialize(item.bbox_id, in);
+    dlib::deserialize(item.id, in);
 }
 
 #endif  // bbox_details_h_INCLUDED
