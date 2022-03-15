@@ -70,7 +70,7 @@ PYBIND11_MODULE(bboxloader, m)
                     return p;
             })
         .def(py::pickle(
-            [](const BBoxList& l) { return py::make_tuple(l.size(), std::string("listing.dat")); },
+            [](const BBoxList& l) { return py::make_tuple(l.size(), std::string("bbox_dataset.dat")); },
             [](py::tuple t)
             {
                 if (t.size() != 2)
