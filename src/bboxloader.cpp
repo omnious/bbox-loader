@@ -27,6 +27,8 @@ PYBIND11_MODULE(bboxloader, m)
         .def_readwrite("label", &bbox_details::label, "class label")
         .def_readwrite("id", &bbox_details::id, "bounding box id")
         .def("__eq__", [](const bbox_details& a, const bbox_details& b) { return a.id == b.id; })
+        .def("__lt__", [](const bbox_details& a, const bbox_details& b) { return a.id < b.id; })
+        .def("__gt__", [](const bbox_details& a, const bbox_details& b) { return a.id > b.id; })
         .def(
             "__repr__",
             [](const bbox_details& item)
@@ -69,8 +71,25 @@ PYBIND11_MODULE(bboxloader, m)
                 else
                     return p;
             })
+        .def("sort_by_id", [](BBoxList& l) { std::sort(std::execution::par, l.begin(), l.end()); })
+        .def(
+            "sort_by_path",
+            [](BBoxList& l)
+            {
+                std::sort(
+                    std::execution::par,
+                    l.begin(),
+                    l.end(),
+                    [](const bbox_details& a, const bbox_details& b)
+                    {
+                        if (a.path == b.path)
+                            return a.id < b.id;
+                        return a.path < b.path;
+                    });
+            })
         .def(py::pickle(
-            [](const BBoxList& l) { return py::make_tuple(l.size(), std::string("bbox_dataset.dat")); },
+            [](const BBoxList& l)
+            { return py::make_tuple(l.size(), std::string("bbox_dataset.dat")); },
             [](py::tuple t)
             {
                 if (t.size() != 2)

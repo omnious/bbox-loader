@@ -94,6 +94,11 @@ struct bbox_details
         sout << path << width << height << xmin << ymin << xmax << ymax << label;
         return dlib::md5(sout.str());
     }
+
+    friend bool operator<(const bbox_details& a, const bbox_details& b)
+    {
+        return a.id < b.id;
+    }
 };
 
 inline auto serialize(const bbox_details& item, std::ostream& out) -> void
