@@ -29,19 +29,36 @@ assert info == listing[idx]
 # We can also print it, to see the Bounding Box details
 print(info)
 
+# The BBoxList data structure has also some sorting capabilities.
+# To make this example run faster, we will work with the first entries only.
 l2 = BBoxList()
-for i in range(10000):
+for i in range(100000):
     l2.append(listing[i])
 
+# We can sort it by bounding box id using the builtin sorted function
 start = default_timer()
 l3 = sorted(l2)
 print("sorting time Python:", default_timer() - start, "s")
 
+# Or we can use the custom sorting methods, which run in parallel and faster.
 start = default_timer()
 l2.sort_by_id()
 print("sorting time C++:", default_timer() - start, "s")
 start = default_timer()
 l2.sort_by_path()
 print("sorting time C++:", default_timer() - start, "s")
-for i in l2:
-    print(i)
+
+# Finally, in order to get all items from a particular label, we can use the
+# partition method, which will put them at the beginning of the list.  Note that
+# this is implemented using a stable partition method, which means that the
+# relative positions of items are kept: if you sort by path, then partition by
+# ties, all examples of ties will be sorted by path, as well.
+start = default_timer()
+end = l2.partition("tie")
+print("partition time:", default_timer() - start, "s")
+print("found", end, "ties")
+for i in range(end):
+    print(l2[i].label, l2[i].path)
+# The next element is not a tie, the order after the partition point is not
+# undefined.
+print(l2[end].label, l2[end].path)

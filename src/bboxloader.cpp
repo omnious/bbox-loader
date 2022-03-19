@@ -10,6 +10,7 @@ namespace py = pybind11;
 using namespace dlib;
 
 using BBoxList = std::vector<bbox_details>;
+PYBIND11_MAKE_OPAQUE(BBoxList);
 
 PYBIND11_MODULE(bboxloader, m)
 {
@@ -47,46 +48,79 @@ PYBIND11_MODULE(bboxloader, m)
                 return sout.str();
             });
 
+    const auto find_bbox_by_id = [](const BBoxList& l, const std::string& id)
+    {
+        const auto p = std::find_if(
+                           std::execution::par_unseq,
+                           l.begin(),
+                           l.end(),
+                           [&id](const auto i) { return i.id == id; }) -
+                       l.begin();
+        if (p == l.size())
+            return -1l;
+        else
+            return p;
+    };
+
+    const auto sort_by_id = [](BBoxList& l)
+    {
+        std::sort(std::execution::par_unseq, l.begin(), l.end());
+    };
+
+    const auto sort_by_path = [](BBoxList& l)
+    {
+        std::sort(
+            std::execution::par_unseq,
+            l.begin(),
+            l.end(),
+            [](const bbox_details& a, const bbox_details& b)
+            {
+                if (a.path == b.path)
+                    return a.id < b.id;
+                return a.path < b.path;
+            });
+    };
+
+    const auto load_from_csv_files = [](BBoxList& l, const std::string& path)
+    {
+        const auto files = dlib::get_files_in_directory_tree(path, dlib::match_ending(".csv"));
+        BBoxList listing;
+        for (const auto& file : files)
+        {
+            load_csv_file(file.full_name(), listing, true);
+        }
+        return listing;
+    };
+
+    const auto partition = [](BBoxList& l, const std::string& label)
+    {
+        const auto p = std::stable_partition(
+                           std::execution::par_unseq,
+                           l.begin(),
+                           l.end(),
+                           [&label](const bbox_details& i) { return i.label == label; }) -
+                       l.begin();
+        return p;
+    };
+
     py::class_<BBoxList>(m, "BBoxList")
         .def(py::init<>(), "Construct an InfosList object")
         .def("__len__", [](const BBoxList& l) { return l.size(); })
-        .def("__iter__", [](BBoxList& l) { return py::make_iterator(l.begin(), l.end()); })
+        .def(
+            "__iter__",
+            [](BBoxList& l) { return py::make_iterator(l.begin(), l.end()); },
+            py::keep_alive<0, 1>())
         .def("__getitem__", [](BBoxList& l, size_t index) { return l[index]; })
         .def("append", [](BBoxList& l, const bbox_details& i) { l.push_back(i); })
         .def("clear", &BBoxList::clear)
+        .def("pop", &BBoxList::pop_back)
         .def("save", [](const BBoxList& l, const std::string& path) { serialize(path) << l; })
         .def("load", [](BBoxList& l, const std::string& path) { deserialize(path) >> l; })
-        .def(
-            "find_bbox_by_id",
-            [](BBoxList& l, const std::string& id)
-            {
-                const auto p = std::find_if(
-                                   std::execution::par_unseq,
-                                   l.begin(),
-                                   l.end(),
-                                   [&id](const auto i) { return i.id == id; }) -
-                               l.begin();
-                if (p == l.size())
-                    return -1l;
-                else
-                    return p;
-            })
-        .def("sort_by_id", [](BBoxList& l) { std::sort(std::execution::par, l.begin(), l.end()); })
-        .def(
-            "sort_by_path",
-            [](BBoxList& l)
-            {
-                std::sort(
-                    std::execution::par,
-                    l.begin(),
-                    l.end(),
-                    [](const bbox_details& a, const bbox_details& b)
-                    {
-                        if (a.path == b.path)
-                            return a.id < b.id;
-                        return a.path < b.path;
-                    });
-            })
+        .def("load_from_csv_files", load_from_csv_files, py::arg("path"))
+        .def("find_bbox_by_id", find_bbox_by_id)
+        .def("sort_by_id", sort_by_id)
+        .def("sort_by_path", sort_by_path)
+        .def("partition", partition, py::arg("label"))
         .def(py::pickle(
             [](const BBoxList& l)
             { return py::make_tuple(l.size(), std::string("bbox_dataset.dat")); },
@@ -99,18 +133,4 @@ PYBIND11_MODULE(bboxloader, m)
                 deserialize(t[1].cast<std::string>()) >> l;
                 return l;
             }));
-
-    m.def(
-        "load_csv_files",
-        [](const std::string& path)
-        {
-            const auto files = dlib::get_files_in_directory_tree(path, dlib::match_ending(".csv"));
-            BBoxList listing;
-            for (const auto& file : files)
-            {
-                load_csv_file(file.full_name(), listing, true);
-            }
-            return listing;
-        },
-        py::arg("path"));
 }
