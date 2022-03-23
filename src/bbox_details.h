@@ -95,10 +95,7 @@ struct bbox_details
         return dlib::md5(sout.str());
     }
 
-    friend bool operator<(const bbox_details& a, const bbox_details& b)
-    {
-        return a.id < b.id;
-    }
+    friend bool operator<(const bbox_details& a, const bbox_details& b) { return a.id < b.id; }
 };
 
 inline auto serialize(const bbox_details& item, std::ostream& out) -> void
