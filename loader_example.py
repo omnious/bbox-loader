@@ -21,7 +21,7 @@ start = default_timer()
 
 # It has some extra methods for finding a particular BBox
 idx = listing.find_bbox_by_id(info.id)
-print("finding time:", default_timer() - start, "s")
+print("finding id time:", default_timer() - start, "s")
 
 # We can compare bounding boxes (it uses the BBox ID internally)
 assert info == listing[idx]
@@ -30,9 +30,11 @@ assert info == listing[idx]
 print(info)
 
 # Moreover, we can also gather all the bounding boxes for a particular image
-# boxes = listing.find_bboxes_by_path(listing[0].path)
-# for box in boxes:
-#     print(box.path, box.label)
+start = default_timer()
+boxes = listing.find_bboxes_by_path(listing[0].path)
+print("finding by path time:", default_timer() - start, "s")
+for box in boxes:
+    print(box.label, box.path)
 
 # The BBoxList data structure has also some sorting capabilities.
 # To make this example run faster, we will work with the first entries only.

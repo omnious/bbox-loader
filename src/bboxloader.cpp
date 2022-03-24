@@ -65,24 +65,31 @@ PYBIND11_MODULE(bboxloader, m)
     // still not working for some reason...
     const auto find_bboxes_by_path = [](const BBoxList& l, const std::string& path)
     {
-        struct comparator
-        {
-            bool operator()(const bbox_details& a, const std::string& path)
-            {
-                return a.path < path;
-            }
-            bool operator()(const std::string& path, const bbox_details& a)
-            {
-                return path < a.path;
-            }
-        };
-        std::cout << "C++ path: " << path << std::endl;
-        const auto range = std::equal_range(l.begin(), l.end(), path, comparator{});
         BBoxList bboxes;
-        for (auto i = range.first; i != range.second; ++i)
-            bboxes.push_back(*i);
-        std::cout << "C++ bboxes size = " << bboxes.size() << std::endl;
+        for (const auto& item : l)
+            if (item.path == path)
+                bboxes.push_back(item);
         return bboxes;
+
+        // struct comparator
+        // {
+        //     bool operator()(const bbox_details& a, const std::string& path)
+        //     {
+        //         return a.path < path;
+        //     }
+        //     bool operator()(const std::string& path, const bbox_details& a)
+        //     {
+        //         return path < a.path;
+        //     }
+        // };
+        // std::cout << "C++ path: " << path << std::endl;
+        // const auto range = std::equal_range(l.begin(), l.end(), path, comparator{});
+        // std::cout << range.first - l.begin() << '\n';
+        // std::cout << range.second - l.begin() << '\n';
+        // for (auto i = range.first; i != range.second; ++i)
+        //     bboxes.push_back(*i);
+        // std::cout << "C++ bboxes size = " << bboxes.size() << std::endl;
+        // return bboxes;
     };
 
     const auto sort_by_id = [](BBoxList& l)
@@ -157,7 +164,7 @@ PYBIND11_MODULE(bboxloader, m)
         .def("load", [](BBoxList& l, const std::string& path) { deserialize(path) >> l; })
         .def("load_from_csv_files", load_from_csv_files, py::arg("path"))
         .def("find_bbox_by_id", find_bbox_by_id)
-        // .def("find_bboxes_by_path", find_bboxes_by_path, py::arg("path"))
+        .def("find_bboxes_by_path", find_bboxes_by_path, py::arg("path"))
         .def("sort_by_id", sort_by_id)
         .def("sort_by_path", sort_by_path)
         .def("partition", partition, py::arg("label"))
