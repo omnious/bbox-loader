@@ -29,6 +29,11 @@ assert info == listing[idx]
 # We can also print it, to see the Bounding Box details
 print(info)
 
+# Moreover, we can also gather all the bounding boxes for a particular image
+# boxes = listing.find_bboxes_by_path(listing[0].path)
+# for box in boxes:
+#     print(box.path, box.label)
+
 # The BBoxList data structure has also some sorting capabilities.
 # To make this example run faster, we will work with the first entries only.
 l2 = BBoxList()

@@ -54,12 +54,35 @@ PYBIND11_MODULE(bboxloader, m)
                            std::execution::par_unseq,
                            l.begin(),
                            l.end(),
-                           [&id](const auto i) { return i.id == id; }) -
+                           [&id](const bbox_details& i) { return i.id == id; }) -
                        l.begin();
         if (p == l.size())
             return -1l;
         else
             return p;
+    };
+
+    // still not working for some reason...
+    const auto find_bboxes_by_path = [](const BBoxList& l, const std::string& path)
+    {
+        struct comparator
+        {
+            bool operator()(const bbox_details& a, const std::string& path)
+            {
+                return a.path < path;
+            }
+            bool operator()(const std::string& path, const bbox_details& a)
+            {
+                return path < a.path;
+            }
+        };
+        std::cout << "C++ path: " << path << std::endl;
+        const auto range = std::equal_range(l.begin(), l.end(), path, comparator{});
+        BBoxList bboxes;
+        for (auto i = range.first; i != range.second; ++i)
+            bboxes.push_back(*i);
+        std::cout << "C++ bboxes size = " << bboxes.size() << std::endl;
+        return bboxes;
     };
 
     const auto sort_by_id = [](BBoxList& l)
@@ -110,7 +133,23 @@ PYBIND11_MODULE(bboxloader, m)
             "__iter__",
             [](BBoxList& l) { return py::make_iterator(l.begin(), l.end()); },
             py::keep_alive<0, 1>())
+        // slicing capabilities
         .def("__getitem__", [](BBoxList& l, size_t index) { return l[index]; })
+        .def("__getitem__", [](const BBoxList& l, const py::slice &slice) {
+            py::ssize_t start = 0, stop = 0, step = 0, slicelength = 0;
+            if (!slice.compute(l.size(), &start, &stop, &step, &slicelength)) {
+                throw py::error_already_set();
+            }
+            BBoxList b;
+            int istart = static_cast<int>(start);
+            int istop = static_cast<int>(stop);
+            int istep = static_cast<int>(step);
+            std::cerr << "(" << istart << ", " << stop << ", " << istep << ")\n";
+            for (auto i = start; i < start + stop; i += step)
+                b.push_back(l[i]);
+            return b;
+            // return std::make_tuple(istart, istop, istep);
+        })
         .def("append", [](BBoxList& l, const bbox_details& i) { l.push_back(i); })
         .def("clear", &BBoxList::clear)
         .def("pop", &BBoxList::pop_back)
@@ -118,6 +157,7 @@ PYBIND11_MODULE(bboxloader, m)
         .def("load", [](BBoxList& l, const std::string& path) { deserialize(path) >> l; })
         .def("load_from_csv_files", load_from_csv_files, py::arg("path"))
         .def("find_bbox_by_id", find_bbox_by_id)
+        // .def("find_bboxes_by_path", find_bboxes_by_path, py::arg("path"))
         .def("sort_by_id", sort_by_id)
         .def("sort_by_path", sort_by_path)
         .def("partition", partition, py::arg("label"))
