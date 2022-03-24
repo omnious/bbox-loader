@@ -151,11 +151,9 @@ PYBIND11_MODULE(bboxloader, m)
             int istart = static_cast<int>(start);
             int istop = static_cast<int>(stop);
             int istep = static_cast<int>(step);
-            std::cerr << "(" << istart << ", " << stop << ", " << istep << ")\n";
             for (auto i = start; i < start + stop; i += step)
                 b.push_back(l[i]);
             return b;
-            // return std::make_tuple(istart, istop, istep);
         })
         .def("append", [](BBoxList& l, const bbox_details& i) { l.push_back(i); })
         .def("clear", &BBoxList::clear)
