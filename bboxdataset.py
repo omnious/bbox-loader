@@ -7,7 +7,7 @@ from os.path import join
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-def letterbox_image(image: Image, size: int = 224):
+def letterbox_image(image: Image, size: int = 224) -> Image:
     """
         Rescales the image in `image_path` to fit in a `size` x `size` image
         while keeping the aspect ratio of the original image by padding the
@@ -18,8 +18,6 @@ def letterbox_image(image: Image, size: int = 224):
         A PIL Image
     size: int
         Ouput size of the image
-    center: bool
-        Whether to center or not the image
     """
     input_size = image.size
     scale = float(size) / max(input_size)
