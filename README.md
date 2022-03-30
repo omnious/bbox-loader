@@ -13,7 +13,7 @@ sudo apt install libtbb-dev
 
 Now, we can clone and build this package
 ```bash
-git clone git@github.com:omnious/res-bbox-loader.git
+git clone git@github.com:omnious/bbox-loader.git
 cd bbox-loader
 python setup.py install
 ```
