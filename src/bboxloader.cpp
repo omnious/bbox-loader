@@ -1,6 +1,7 @@
 #include "bbox_details.h"
 
 #include <dlib/dir_nav.h>
+#include <dlib/statistics.h>
 #include <execution>
 #include <pybind11/pybind11.h>
 #include <regex>
@@ -111,6 +112,16 @@ PYBIND11_MODULE(bboxloader, m)
             });
     };
 
+    const auto randomly_subsample = [](const BBoxList& l, const double factor, const int seed = 0)
+    {
+        DLIB_CASSERT(factor > 0 and factor < 1, "subsampling factor must be between 0 and 1");
+        const auto sampler = dlib::randomly_subsample(l, std::round(l.size() * factor), seed);
+        BBoxList subset;
+        for (const auto& sample : sampler)
+            subset.push_back(sample);
+        return subset;
+    };
+
     const auto load_from_csv_files = [](BBoxList& l, const std::string& path)
     {
         const auto files = dlib::get_files_in_directory_tree(path, dlib::match_ending(".csv"));
@@ -169,6 +180,7 @@ PYBIND11_MODULE(bboxloader, m)
         .def("find_bboxes_by_path", find_bboxes_by_path, py::arg("path"))
         .def("sort_by_id", sort_by_id)
         .def("sort_by_path", sort_by_path)
+        .def("randomly_subsample", randomly_subsample, py::arg("factor"), py::arg("seed") = 0)
         .def("partition", partition, py::arg("label"))
         .def(py::pickle(
             [](const BBoxList& l)

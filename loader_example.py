@@ -37,10 +37,9 @@ for box in boxes:
     print(box.label, box.path)
 
 # The BBoxList data structure has also some sorting capabilities.
-# To make this example run faster, we will work with the first entries only.
-l2 = BBoxList()
-for i in range(100000):
-    l2.append(listing[i])
+# To make this example run faster, we will randomly subsample the dataset.
+l2 = listing.randomly_subsample(0.001, seed=0)
+print("number of random samples:", len(l2))
 
 # We can sort it by bounding box id using the builtin sorted function
 start = default_timer()
@@ -68,4 +67,5 @@ for i in range(end):
     print(l2[i].label, l2[i].path)
 # The next element is not a tie, the order after the partition point is not
 # undefined.
+print("\nThe next item in the list it's not a tie:")
 print(l2[end].label, l2[end].path)
