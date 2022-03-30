@@ -62,7 +62,6 @@ PYBIND11_MODULE(bboxloader, m)
             return p;
     };
 
-    // still not working for some reason...
     const auto find_bboxes_by_path = [](const BBoxList& l, const std::string& path)
     {
         BBoxList bboxes;
@@ -71,6 +70,7 @@ PYBIND11_MODULE(bboxloader, m)
                 bboxes.push_back(item);
         return bboxes;
 
+        // still not working for some reason...
         // struct comparator
         // {
         //     bool operator()(const bbox_details& a, const std::string& path)
@@ -142,19 +142,23 @@ PYBIND11_MODULE(bboxloader, m)
             py::keep_alive<0, 1>())
         // slicing capabilities
         .def("__getitem__", [](BBoxList& l, size_t index) { return l[index]; })
-        .def("__getitem__", [](const BBoxList& l, const py::slice &slice) {
-            py::ssize_t start = 0, stop = 0, step = 0, slicelength = 0;
-            if (!slice.compute(l.size(), &start, &stop, &step, &slicelength)) {
-                throw py::error_already_set();
-            }
-            BBoxList b;
-            int istart = static_cast<int>(start);
-            int istop = static_cast<int>(stop);
-            int istep = static_cast<int>(step);
-            for (auto i = start; i < start + stop; i += step)
-                b.push_back(l[i]);
-            return b;
-        })
+        .def(
+            "__getitem__",
+            [](const BBoxList& l, const py::slice& slice)
+            {
+                py::ssize_t start = 0, stop = 0, step = 0, slicelength = 0;
+                if (!slice.compute(l.size(), &start, &stop, &step, &slicelength))
+                {
+                    throw py::error_already_set();
+                }
+                BBoxList b;
+                int istart = static_cast<int>(start);
+                int istop = static_cast<int>(stop);
+                int istep = static_cast<int>(step);
+                for (auto i = start; i < start + stop; i += step)
+                    b.push_back(l[i]);
+                return b;
+            })
         .def("append", [](BBoxList& l, const bbox_details& i) { l.push_back(i); })
         .def("clear", &BBoxList::clear)
         .def("pop", &BBoxList::pop_back)
