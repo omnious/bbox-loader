@@ -2,7 +2,9 @@
 
 #include <dlib/dir_nav.h>
 #include <dlib/statistics.h>
+#if USE_TBB
 #include <execution>
+#endif
 #include <pybind11/pybind11.h>
 #include <regex>
 
@@ -52,7 +54,9 @@ PYBIND11_MODULE(bboxloader, m)
     const auto find_bbox_by_id = [](const BBoxList& l, const std::string& id)
     {
         const auto p = std::find_if(
+#if USE_TBB
                            std::execution::par_unseq,
+#endif
                            l.begin(),
                            l.end(),
                            [&id](const bbox_details& i) { return i.id == id; }) -
@@ -95,13 +99,20 @@ PYBIND11_MODULE(bboxloader, m)
 
     const auto sort_by_id = [](BBoxList& l)
     {
-        std::sort(std::execution::par_unseq, l.begin(), l.end());
+        std::sort(
+#if USE_TBB
+            std::execution::par_unseq,
+#endif
+            l.begin(),
+            l.end());
     };
 
     const auto sort_by_path = [](BBoxList& l)
     {
         std::sort(
+#if USE_TBB
             std::execution::par_unseq,
+#endif
             l.begin(),
             l.end(),
             [](const bbox_details& a, const bbox_details& b)
@@ -136,7 +147,9 @@ PYBIND11_MODULE(bboxloader, m)
     const auto partition = [](BBoxList& l, const std::string& label)
     {
         const auto p = std::stable_partition(
+#if USE_TBB
                            std::execution::par_unseq,
+#endif
                            l.begin(),
                            l.end(),
                            [&label](const bbox_details& i) { return i.label == label; }) -
