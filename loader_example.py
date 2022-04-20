@@ -14,6 +14,21 @@ start = default_timer()
 listing.load(argv[1])
 print("loading time:", default_timer() - start, "s")
 
+# We can compute the stats over the bounding box sizes
+start = default_timer()
+stats = listing.box_size_stats(bin_size=10)
+# We could also get the stats for the image sizes
+# stats = listing.image_size_stats(bin_size=100)
+print("stats time:", default_timer() - start, "s")
+
+# And then print them like this
+# for key, val in stats["width"].items():
+#     print(key, "=>", val)
+
+# for key, val in stats["height"].items():
+#     print(key, "=>", val)
+
+
 # We can use it as if it were a normal native List
 print("number of items:", len(listing))
 info = listing[len(listing) - 1]
@@ -38,8 +53,9 @@ for box in boxes:
 
 # The BBoxList data structure has also some sorting capabilities.
 # To make this example run faster, we will randomly subsample the dataset.
-l2 = listing.randomly_subsample(0.001, seed=0)
+l2 = listing.randomly_subsample(0.006, seed=0)
 print("number of random samples:", len(l2))
+l2.save("bbox_dataset_0.006_0.dat")
 
 # We can sort it by bounding box id using the builtin sorted function
 start = default_timer()

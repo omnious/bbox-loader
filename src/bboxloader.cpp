@@ -6,6 +6,8 @@
 #include <execution>
 #endif
 #include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
 #include <regex>
 
 namespace py = pybind11;
@@ -157,6 +159,56 @@ PYBIND11_MODULE(bboxloader, m)
         return p;
     };
 
+    const auto image_size_stats = [](const BBoxList& l, const int bin_size = 100)
+    {
+        DLIB_CASSERT(bin_size > 0);
+        std::map<long, size_t> width, height;
+        std::set<std::string> paths;
+        for (const auto& item : l)
+        {
+            if (paths.count(item.path) > 0)
+                continue;
+            paths.insert(item.path);
+            width[(item.width / bin_size) * bin_size]++;
+            height[(item.height / bin_size) * bin_size]++;
+        }
+        py::dict widths, heights;
+        for (const auto& [bin, num] : width)
+            widths[std::to_string(bin).c_str()] = num;
+        for (const auto& [bin, num] : height)
+            heights[std::to_string(bin).c_str()] = num;
+        py::dict stats;
+        stats["width"] = std::move(widths);
+        stats["height"] = std::move(heights);
+        return stats;
+    };
+
+    const auto box_size_stats = [](const BBoxList& l, const int bin_size = 100)
+    {
+        DLIB_CASSERT(bin_size > 0);
+        std::map<long, size_t> width, height;
+        std::set<std::string> paths;
+        for (const auto& item : l)
+        {
+            if (paths.count(item.path) > 0)
+                continue;
+            paths.insert(item.path);
+            const auto w = item.xmax - item.xmin;
+            const auto h = item.ymax - item.ymin;
+            width[(w / bin_size) * bin_size]++;
+            height[(h / bin_size) * bin_size]++;
+        }
+        py::dict widths, heights;
+        for (const auto& [bin, num] : width)
+            widths[std::to_string(bin).c_str()] = num;
+        for (const auto& [bin, num] : height)
+            heights[std::to_string(bin).c_str()] = num;
+        py::dict stats;
+        stats["width"] = std::move(widths);
+        stats["height"] = std::move(heights);
+        return stats;
+    };
+
     py::class_<BBoxList>(m, "BBoxList")
         .def(py::init<>(), "Construct an InfosList object")
         .def("__len__", [](const BBoxList& l) { return l.size(); })
@@ -195,6 +247,8 @@ PYBIND11_MODULE(bboxloader, m)
         .def("sort_by_path", sort_by_path)
         .def("randomly_subsample", randomly_subsample, py::arg("factor"), py::arg("seed") = 0)
         .def("partition", partition, py::arg("label"))
+        .def("image_size_stats", image_size_stats, py::arg("bin_size") = 100)
+        .def("box_size_stats", box_size_stats, py::arg("bin_size") = 100)
         .def(py::pickle(
             [](const BBoxList& l)
             { return py::make_tuple(l.size(), std::string("bbox_dataset.dat")); },
