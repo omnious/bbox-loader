@@ -15,11 +15,11 @@ listing.load(argv[1])
 print("loading time:", default_timer() - start, "s")
 
 # We can compute the stats over the bounding box sizes
-start = default_timer()
-stats = listing.box_size_stats(bin_size=10)
+# start = default_timer()
+# stats = listing.box_size_stats(bin_size=10)
 # We could also get the stats for the image sizes
 # stats = listing.image_size_stats(bin_size=100)
-print("stats time:", default_timer() - start, "s")
+# print("stats time:", default_timer() - start, "s")
 
 # And then print them like this
 # for key, val in stats["width"].items():

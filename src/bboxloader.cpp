@@ -5,14 +5,16 @@
 #if USE_TBB
 #include <execution>
 #endif
-#include <pybind11/pybind11.h>
+#include <filesystem>
 #include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <regex>
 
 namespace py = pybind11;
 
 using namespace dlib;
+namespace fs = std::filesystem;
 
 using BBoxList = std::vector<bbox_details>;
 PYBIND11_MAKE_OPAQUE(BBoxList);
@@ -209,6 +211,19 @@ PYBIND11_MODULE(bboxloader, m)
         return stats;
     };
 
+    const auto replace_extensions = [](BBoxList& l, const std::string& extension)
+    {
+        std::for_each(
+            std::execution::par_unseq,
+            l.begin(),
+            l.end(),
+            [](bbox_details& l) {
+                fs::path file(l.path);
+                file.replace_extension(".webp");
+                l.path = file.string();
+            });
+    };
+
     py::class_<BBoxList>(m, "BBoxList")
         .def(py::init<>(), "Construct an InfosList object")
         .def("__len__", [](const BBoxList& l) { return l.size(); })
@@ -249,6 +264,7 @@ PYBIND11_MODULE(bboxloader, m)
         .def("partition", partition, py::arg("label"))
         .def("image_size_stats", image_size_stats, py::arg("bin_size") = 100)
         .def("box_size_stats", box_size_stats, py::arg("bin_size") = 100)
+        .def("replace_extensions", replace_extensions, py::arg("extension"))
         .def(py::pickle(
             [](const BBoxList& l)
             { return py::make_tuple(l.size(), std::string("bbox_dataset.dat")); },
