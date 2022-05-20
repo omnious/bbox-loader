@@ -217,11 +217,8 @@ PYBIND11_MODULE(bboxloader, m)
             std::execution::par_unseq,
             l.begin(),
             l.end(),
-            [](bbox_details& l) {
-                fs::path file(l.path);
-                file.replace_extension(".webp");
-                l.path = file.string();
-            });
+            [&extension](bbox_details& l)
+            { l.path = fs::path(l.path).replace_extension(extension).string(); });
     };
 
     py::class_<BBoxList>(m, "BBoxList")
