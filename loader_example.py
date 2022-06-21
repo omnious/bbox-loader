@@ -1,4 +1,4 @@
-from build.Release.bboxloader import BBoxList
+from bboxloader import BBoxList
 from timeit import default_timer
 from sys import argv, exit
 

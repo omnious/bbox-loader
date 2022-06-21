@@ -79,8 +79,8 @@ endif()
 
 set(PYBIND11_PYTHON_VERSION "3.7")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-fetch_content(dlib v19.23 https://github.com/davisking/dlib.git)
-fetch_content(pybind11 v2.9.1 https://github.com/pybind/pybind11.git)
+fetch_content(dlib v19.24 https://github.com/davisking/dlib.git)
+fetch_content(pybind11 v2.9.2 https://github.com/pybind/pybind11.git)
 
 pybind11_add_module(bboxloader src/bboxloader.cpp)
 if (TBB_FOUND)
